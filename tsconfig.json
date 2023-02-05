@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "sourceMap": false,
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "outDir": "./out",
+        "noImplicitReturns": true,
+        "allowSyntheticDefaultImports":true
+      },
+
+    "include": [
+        "./src"
+    ]
+}

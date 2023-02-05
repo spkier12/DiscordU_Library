@@ -1,0 +1,18 @@
+{
+  "name": "discordu_library",
+  "version": "0.0.1",
+  "description": "Discord library minimal made by Ulrik Brun - Ulrikbrun.eu",
+  "main": "./out/example.js",
+  "scripts": {
+    "test": "node ."
+  },
+  "author": "Ulrik Skilbred Brun",
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.12.0"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^18.11.19"
+  }
+}
