@@ -1,3 +1,4 @@
+// Discord Client and Events
 import { Discord, OnReady, OnMessage_Create } from './Gateway.js';
 // Start connection
 new Discord({
@@ -9,4 +10,5 @@ OnReady.once('OnReady', async (Bot) => {
     console.log(`Discord bot: ${Bot.d.user.username} is now online!`);
 });
 OnMessage_Create.on('OnMessage_Create', async (CTX) => {
+    console.log(`\n User: ${CTX.d.author.username} Wrote: ${CTX.d.content}`);
 });

@@ -1,4 +1,4 @@
-import * as D from './Mod.js';
+import { DiscordLogging } from './Mod.js';
 import Websocket from 'ws';
 import events from 'node:events';
 // Events of failure from gateway api
@@ -13,8 +13,10 @@ export const OnMessage_Delete = new events.EventEmitter();
 // ------------------------------------------------
 // Information for further development
 // This gateway automaticly close every 40 mins
+// WARNING: YOU NEED TO GET THE SEQUENCE NUMBER FROM EVERY SOCKET DATA!!
 // ------------------------------------------------
 let DevMode = false;
+let Sequence = null;
 export class Discord {
     client;
     constructor(Client) {
@@ -32,7 +34,7 @@ async function WS(Payload) {
         Socket.on('message', async (I) => { await OnMessage(I, Payload, Socket); });
     }
     catch (e) {
-        DevMode ? await D.DiscordLogging(`We received a error: ${e}`) : false;
+        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false;
     }
 }
 // As soon as we connect and we receive opcode 10 then send identify payload
@@ -51,10 +53,10 @@ async function Identify(Payload, Socket) {
             }
         };
         Socket.send(JSON.stringify(Data));
-        DevMode ? await D.DiscordLogging("Sending Identify payload") : false;
+        DevMode ? await DiscordLogging("Sending Identify payload") : false;
     }
     catch (e) {
-        DevMode ? await D.DiscordLogging(`We received a error: ${e}`) : false;
+        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false;
     }
 }
 // If opcode 10 is received then send opcode 1 and discord will return opcode 11 to verify
@@ -62,18 +64,19 @@ async function Hearthbeat(Interval, Socket) {
     setInterval(async () => {
         const Data = {
             "op": 1,
-            "d": 1
+            "d": Sequence
         };
         Socket.send(JSON.stringify(Data));
-        DevMode ? await D.DiscordLogging("Sending heartbeat") : false;
+        DevMode ? await DiscordLogging(`Sending hearthbeat with sequence: ${Sequence}`) : false;
     }, Interval);
 }
 // When socket receives a message then parse json and handle the opcodes below
 async function OnMessage(Message, Payload, Socket) {
     try {
         const payload = JSON.parse((Message).toString());
-        console.clear(); // Make sure to clear the console before we write agen!
-        DevMode ? await D.DiscordLogging((Message).toString()) : false;
+        payload.s != null ? Sequence = payload.s : false;
+        //console.clear() // Make sure to clear the console before we write agen!
+        // DevMode ? await DiscordLogging((Message).toString()) : false
         switch (payload.op) {
             case (0):
                 await DiscordEventReceived(payload);
@@ -101,12 +104,12 @@ async function OnMessage(Message, Payload, Socket) {
                 await Hearthbeat(payload["d"]["heartbeat_interval"], Socket);
                 break;
             case (11):
-                DevMode ? await D.DiscordLogging("HearthBeat has been received") : false;
+                DevMode ? await DiscordLogging("HearthBeat has been received") : false;
                 break;
         }
     }
     catch (e) {
-        DevMode ? await D.DiscordLogging(`We received a error: ${e}`) : false;
+        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false;
     }
 }
 // If opcode 0 is received then we recived DATA from the gateway witch we will handle here
@@ -125,6 +128,6 @@ async function DiscordEventReceived(Data) {
         }
     }
     catch (e) {
-        DevMode ? await D.DiscordLogging(`We received a error: ${e}`) : false;
+        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false;
     }
 }

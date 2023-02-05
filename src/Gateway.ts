@@ -81,7 +81,7 @@ async function Hearthbeat(Interval: number, Socket: Websocket) {
 async function OnMessage(Message: string, Payload: Dtypes.DiscordClient, Socket: Websocket) {
     try {
         const payload = JSON.parse((Message).toString())
-        Sequence = parseInt(payload.s)
+        payload.s != null ? Sequence = payload.s : false
         //console.clear() // Make sure to clear the console before we write agen!
         // DevMode ? await DiscordLogging((Message).toString()) : false
 

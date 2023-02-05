@@ -20,5 +20,5 @@ OnReady.once('OnReady', async (Bot: DiscordOnReady) => {
 })
 
 OnMessage_Create.on('OnMessage_Create', async (CTX: DiscordOnMessage_Create) => {
-
+    console.log(`\n User: ${CTX.d.author.username} Wrote: ${CTX.d.content}`)
 })
