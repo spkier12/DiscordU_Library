@@ -8,12 +8,7 @@ export type DiscordClient = {
 
 // When the OnReady event fires this is the payload
 export type DiscordOnReady = {
-    t:string,
-    s:number,
-    op:number,
     d: {
-        v:number,
-        user_settings:any,
         user: {
             verified:boolean,
             username:string,
@@ -28,5 +23,47 @@ export type DiscordOnReady = {
             presences:any,
             guilds:any,
         }
+    }
+}
+
+// When a message is deleted this is the payload you can get from it
+export type DiscordOnMessage_Delete = {
+    d:{
+        id:string,
+        channel_id:string,
+        guild_id:string
+    }
+}
+
+// When a message is created this is the payload you can get from it
+export type DiscordOnMessage_Create = {
+    d:{
+        pinned:boolean,
+        mentions:[],
+        mention_roles:[],
+        mention_everyone:boolean,
+        member:{
+            roles:[],
+            premium_since:boolean | undefined,
+            pending:boolean,
+            nick:string | undefined,
+            mute:boolean,
+            joined_at:any | undefined,
+            flags:number,
+            deaf:boolean,
+            communication_disabled_until:any | undefined,
+            avatar:any | undefined
+        },
+        id:string,
+        embeds:[],
+        content:string,
+        components:[],
+        channel_id:string,
+        author:{
+            username:string,
+            id:string,
+        },
+        attachments:[],
+        guild_id:string
     }
 }

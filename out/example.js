@@ -1,4 +1,4 @@
-import { Discord, OnReady } from './Gateway.js';
+import { Discord, OnReady, OnMessage_Create } from './Gateway.js';
 // Start connection
 new Discord({
     token: "OTgzMzYwNjkzOTYzMjE4OTQ1.GY6Aun.xvkt30YTDxueczecwiKzJvmHYmB_GWujMI3Itw",
@@ -7,4 +7,6 @@ new Discord({
 });
 OnReady.once('OnReady', async (Bot) => {
     console.log(`Discord bot: ${Bot.d.user.username} is now online!`);
+});
+OnMessage_Create.on('OnMessage_Create', async (CTX) => {
 });

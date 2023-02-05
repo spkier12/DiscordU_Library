@@ -1,4 +1,4 @@
-import * as D from './Mod.js'
+import {Dtypes, DiscordLogging} from './Mod.js'
 import Websocket from 'ws'
 import events from 'node:events'
 
@@ -16,20 +16,22 @@ export const OnMessage_Delete = new events.EventEmitter()
 // ------------------------------------------------
 // Information for further development
 // This gateway automaticly close every 40 mins
+// WARNING: YOU NEED TO GET THE SEQUENCE NUMBER FROM EVERY SOCKET DATA!!
 // ------------------------------------------------
 
 let DevMode = false
+let Sequence = null
 export class Discord {
-    client: D.DiscordClient
+    client: Dtypes.DiscordClient
 
-    constructor(Client: D.DiscordClient) {
+    constructor(Client: Dtypes.DiscordClient) {
         this.client = Client
         WS(this.client)
     }
 }
 
 // Connects to Discord gateway 
-async function WS(Payload: D.DiscordClient) {
+async function WS(Payload: Dtypes.DiscordClient) {
     try {
         DevMode = Payload.Devmode
         const GatewayVersion = 10
@@ -37,12 +39,12 @@ async function WS(Payload: D.DiscordClient) {
         const Socket: Websocket = new Websocket(Connection)
         Socket.on('message', async I => {await OnMessage(I, Payload, Socket)})
     } catch(e) {
-        DevMode ? await D.DiscordLogging(`We received a error: ${e}`) : false
+        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false
     }
 }
 
 // As soon as we connect and we receive opcode 10 then send identify payload
-async function Identify(Payload: D.DiscordClient, Socket: Websocket) {
+async function Identify(Payload: Dtypes.DiscordClient, Socket: Websocket) {
     try {
         const Data = {
             "op": 2,
@@ -57,9 +59,9 @@ async function Identify(Payload: D.DiscordClient, Socket: Websocket) {
             }
         }
         Socket.send(JSON.stringify(Data))
-        DevMode ? await D.DiscordLogging("Sending Identify payload") : false
+        DevMode ? await DiscordLogging("Sending Identify payload") : false
     } catch(e) {
-        DevMode ? await D.DiscordLogging(`We received a error: ${e}`) : false
+        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false
     }
 }
 
@@ -68,19 +70,20 @@ async function Hearthbeat(Interval: number, Socket: Websocket) {
     setInterval(async() => {
         const Data = {
             "op": 1,
-            "d": 1
+            "d": Sequence
         }
         Socket.send(JSON.stringify(Data))
-        DevMode ? await D.DiscordLogging("Sending heartbeat") : false
+        DevMode ? await DiscordLogging(`Sending hearthbeat with sequence: ${Sequence}`) : false
     }, Interval)
 }
 
 // When socket receives a message then parse json and handle the opcodes below
-async function OnMessage(Message: string, Payload: D.DiscordClient, Socket: Websocket) {
+async function OnMessage(Message: string, Payload: Dtypes.DiscordClient, Socket: Websocket) {
     try {
         const payload = JSON.parse((Message).toString())
-        console.clear() // Make sure to clear the console before we write agen!
-        DevMode ? await D.DiscordLogging((Message).toString()) : false
+        Sequence = parseInt(payload.s)
+        //console.clear() // Make sure to clear the console before we write agen!
+        // DevMode ? await DiscordLogging((Message).toString()) : false
 
         switch(payload.op) {
             case(0):
@@ -109,11 +112,11 @@ async function OnMessage(Message: string, Payload: D.DiscordClient, Socket: Webs
                 await Hearthbeat(payload["d"]["heartbeat_interval"], Socket)
                 break;
             case(11):
-                DevMode ? await D.DiscordLogging("HearthBeat has been received") : false
+                DevMode ? await DiscordLogging("HearthBeat has been received") : false
                 break;
         }
     }catch(e) {
-        DevMode ? await D.DiscordLogging(`We received a error: ${e}`) : false
+        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false
     }
 }
 
@@ -132,6 +135,6 @@ async function DiscordEventReceived(Data: any) {
                 break;
         }
     }catch(e) {
-        DevMode ? await D.DiscordLogging(`We received a error: ${e}`) : false
+        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false
     }
 }
