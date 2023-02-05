@@ -3,7 +3,8 @@
 export type DiscordClient = {
     token: string,
     intents: number,
-    Devmode: boolean
+    Devmode: boolean,
+    ClearConsole: boolean
 }
 
 // When the OnReady event fires this is the payload
