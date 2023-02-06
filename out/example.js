@@ -2,7 +2,7 @@
 import { Discord, OnReady, OnMessage_Create } from './Gateway.js';
 // Start connection
 new Discord({
-    token: "OTgzMzYwNjkzOTYzMjE4OTQ1.GY6Aun.xvkt30YTDxueczecwiKzJvmHYmB_GWujMI3Itw",
+    token: "OTgzMzYwNjkzOTYzMjE4OTQ1.GY6Aun.xvkt30YTDxueczecwiKzJvmHYmB_GWujMI3It",
     intents: 512,
     Devmode: true,
     ClearConsole: true // When this is true it will clear the console on every payload received to free up screen space

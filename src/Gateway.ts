@@ -1,4 +1,4 @@
-import {Dtypes, DiscordLogging} from './Mod.js'
+import {Dtypes, DiscordLogging, ConnectionGatewayError} from './Mod.js'
 import Websocket from 'ws'
 import events from 'node:events'
 import colors from 'colors'
@@ -57,7 +57,7 @@ async function WS_Login(Payload: Dtypes.DiscordClient) {
         // If connection closes for any weird reasion then clear the interval to make function stop running
         // And reset the heartbeat so that it dosnt stop as soon as the connection is restarted
         Socket.on('close', async (Reasion: any) => {
-            await DiscordLogging(colors.bgRed(`Connection to Discord was terminated by ${(Reasion).toString()} reasions | Retrying...`))
+            await DiscordLogging(colors.red(`Connection terminated: ${ConnectionGatewayError[(Reasion).toString()]} | Retrying...`))
             LastHeartBeat = Date.now()
             ResumeAttempts < 5 ? Resume = true : Resume = false
             clearInterval(setIntervalD)
