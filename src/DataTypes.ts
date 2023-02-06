@@ -10,6 +10,8 @@ export type DiscordClient = {
 // When the OnReady event fires this is the payload
 export type DiscordOnReady = {
     d: {
+        session_id:string,
+        resume_gateway_url:string,
         user: {
             verified:boolean,
             username:string,
@@ -18,7 +20,6 @@ export type DiscordOnReady = {
             flags:number,
             email:string | undefined,
             display_name: string | undefined,
-            session_id:string,
             relationships:any,
             private_channels: any,
             presences:any,

@@ -28,10 +28,12 @@ let LastHeartBeat = Date.now()
 let ResumeAttempts = 0
 // If Resume is true then try and re-open connection and receive missed events
 let Resume = false
-// Resume discord gateway url
-let ResumeURL = ""
 // Get the session id to resume lost connections
 let SessionID = ""
+// The version discord should use
+const GatewayVersion = 10
+// URL to connect discord
+let Connection = `wss://gateway.discord.gg/?v${GatewayVersion}&encoding=json`
 
 // Get the config and open a connection by calling Websocket server
 export class Discord {
@@ -39,23 +41,26 @@ export class Discord {
 
     constructor(Client: Dtypes.DiscordClient) {
         this.client = Client
-        WS(this.client)
+        DevMode = Client.Devmode
+        WS_Login(this.client)
     }
 }
 
 // Connects to Discord gateway 
-async function WS(Payload: Dtypes.DiscordClient) {
+async function WS_Login(Payload: Dtypes.DiscordClient) {
     try {
-        DevMode = Payload.Devmode
-        const GatewayVersion = 10
-        let Connection = `wss://gateway.discord.gg/?v${GatewayVersion}&encoding=json`
-        Resume ? Connection = ResumeURL: false
         const Socket: Websocket = new Websocket(Connection)
         Socket.on('message', async I => {await OnMessage(I, Payload, Socket)})
+
+        // If connection closes for any weird reasion then clear the interval to make function stop running
+        // And reset the heartbeat so that it dosnt stop as soon as the connection is restarted
         Socket.on('close', async (Reasion: any) => {
             await Hearthbeat(-1, Socket)
             await DiscordLogging(`Connection to Discord was terminated by ${(Reasion).toString()} reasions | Retrying...`)
-            await WS(Payload)
+            LastHeartBeat = Date.now()
+            ResumeAttempts < 5 ? Resume = true : Resume = false
+            Socket.close()
+            new Discord(Payload)
         })
     } catch(e) {
         DevMode ? await DiscordLogging(`We received a error: ${e}`) : false
@@ -89,6 +94,8 @@ async function Identify(Payload: Dtypes.DiscordClient, Socket: Websocket) {
                 }
               }
             ResumeAttempts++
+            DevMode ? await DiscordLogging("Sending Resume payload") : false
+            Socket.send(JSON.stringify(Data))
             return
         }
 
@@ -122,7 +129,7 @@ async function Hearthbeat(Interval: number, Socket: Websocket) {
                 DevMode ? await DiscordLogging(`Sending hearthbeat with sequence: ${Sequence}`) : false
     
                 // Connection needs to close as socket is silently dead
-                if (Date.now()-LastHeartBeat >= 50000) {
+                if (Date.now()-LastHeartBeat >= Interval+5000) {
                     await DiscordLogging("Zombie connection detected, shutting down!")
                     Socket.close()
                 }
@@ -138,9 +145,14 @@ async function OnMessage(Message: string, Payload: Dtypes.DiscordClient, Socket:
     try {
         const payload = JSON.parse((Message).toString())
         payload.s != null ? Sequence = payload.s : false
-        payload.ClearConsole ? console.clear() : false
-        
 
+        if (payload.t == "READY") {
+            payload.d.session_id != null ? SessionID = payload.d.session_id : false
+            payload.d.resume_gateway_url != null ? Connection = payload.d.resume_gateway_url : false
+        }
+        payload.ClearConsole ? console.clear() : false
+
+        console.log(JSON.stringify((Message).toString()))
         switch(payload.op) {
             case(0):
                 await DiscordEventReceived(payload)
