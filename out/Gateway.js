@@ -74,6 +74,11 @@ async function Identify(Payload, Socket) {
                 }
             }
         };
+        // Make sure Intents and token is not null or undefined or shoter than expected
+        if (Payload.token.length < 40 || Payload.intents == null) {
+            Socket.close();
+            throw ("Either token is invalid or you are missing intents payload! Dont do that!");
+        }
         // Resume the connection if needed
         if (Resume && ResumeAttempts < 10) {
             const Data = {
@@ -137,7 +142,7 @@ async function OnMessage(Message, Payload, Socket) {
             payload.d.resume_gateway_url != null ? Connection = payload.d.resume_gateway_url : false;
         }
         payload.ClearConsole ? console.clear() : false;
-        console.log(JSON.stringify((Message).toString()));
+        // console.log(JSON.stringify((Message).toString()))
         switch (payload.op) {
             case (0):
                 await DiscordEventReceived(payload);

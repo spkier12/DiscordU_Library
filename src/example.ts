@@ -19,7 +19,6 @@ new Discord({
 OnReady.once('OnReady', async (Bot: DiscordOnReady) => {
     console.log(`Discord bot: ${Bot.d.user.username} is now online!`)
 })
-
 OnMessage_Create.on('OnMessage_Create', async (CTX: DiscordOnMessage_Create) => {
     console.log(`\n User: ${CTX.d.author.username} Wrote: ${CTX.d.content}`)
 })

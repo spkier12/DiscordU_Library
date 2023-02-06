@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Discord library minimal made by Ulrik Brun - Ulrikbrun.eu",
   "main": "./out/example.js",
+  "private":"true",
   "scripts": {
     "test": "node ."
   },
