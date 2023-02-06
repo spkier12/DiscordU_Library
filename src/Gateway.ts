@@ -15,12 +15,25 @@ export const OnMessage_Delete = new events.EventEmitter()
 
 // ------------------------------------------------
 // Information for further development
-// This gateway automaticly close every 40 mins
-// WARNING: YOU NEED TO GET THE SEQUENCE NUMBER FROM EVERY SOCKET DATA!!
+// WARNING: YOU NEED TO HANDLE BROKE SOCKET CONNECTIONS
 // ------------------------------------------------
 
+// If  DevMode then print to console the events
 let DevMode = false
+// If sequence is null then this is the first contact if it's wrong then connection will terminate
 let Sequence = null
+// If the hearthbeat is greater than 50000 Miliseconds then terminate connection and resume 
+let LastHeartBeat = Date.now()
+// If resume attempts is greater than 10 then reopen the connection as new
+let ResumeAttempts = 0
+// If Resume is true then try and re-open connection and receive missed events
+let Resume = false
+// Resume discord gateway url
+let ResumeURL = ""
+// Get the session id to resume lost connections
+let SessionID = ""
+
+// Get the config and open a connection by calling Websocket server
 export class Discord {
     client: Dtypes.DiscordClient
 
@@ -35,9 +48,15 @@ async function WS(Payload: Dtypes.DiscordClient) {
     try {
         DevMode = Payload.Devmode
         const GatewayVersion = 10
-        const Connection = `wss://gateway.discord.gg/?v${GatewayVersion}&encoding=json`
+        let Connection = `wss://gateway.discord.gg/?v${GatewayVersion}&encoding=json`
+        Resume ? Connection = ResumeURL: false
         const Socket: Websocket = new Websocket(Connection)
         Socket.on('message', async I => {await OnMessage(I, Payload, Socket)})
+        Socket.on('close', async (Reasion: any) => {
+            await Hearthbeat(-1, Socket)
+            await DiscordLogging(`Connection to Discord was terminated by ${(Reasion).toString()} reasions | Retrying...`)
+            await WS(Payload)
+        })
     } catch(e) {
         DevMode ? await DiscordLogging(`We received a error: ${e}`) : false
     }
@@ -58,6 +77,21 @@ async function Identify(Payload: Dtypes.DiscordClient, Socket: Websocket) {
               }
             }
         }
+
+        // Resume the connection if needed
+        if (Resume && ResumeAttempts < 10) {
+            const Data = {
+                "op": 6,
+                "d": {
+                  "token": Payload.token,
+                  "session_id": SessionID,
+                  "seq": Sequence
+                }
+              }
+            ResumeAttempts++
+            return
+        }
+
         Socket.send(JSON.stringify(Data))
         DevMode ? await DiscordLogging("Sending Identify payload") : false
     } catch(e) {
@@ -67,14 +101,36 @@ async function Identify(Payload: Dtypes.DiscordClient, Socket: Websocket) {
 
 // If opcode 10 is received then send opcode 1 and discord will return opcode 11 to verify
 async function Hearthbeat(Interval: number, Socket: Websocket) {
-    setInterval(async() => {
+    try {
+        let setIntervalD;
         const Data = {
             "op": 1,
             "d": Sequence
         }
-        Socket.send(JSON.stringify(Data))
-        DevMode ? await DiscordLogging(`Sending hearthbeat with sequence: ${Sequence}`) : false
-    }, Interval)
+    
+        // Clear interval is -1 is set != null
+        if(Interval == -1)  {
+            clearInterval(setIntervalD)
+            DevMode? await DiscordLogging("Clearing interval"): false
+            return
+        }
+    
+        // Send a continues heartbeat every Discord seconds to keep connection alive
+        if (Interval != 0) {
+            setIntervalD = setInterval(async() => {
+                Socket.send(JSON.stringify(Data))
+                DevMode ? await DiscordLogging(`Sending hearthbeat with sequence: ${Sequence}`) : false
+    
+                // Connection needs to close as socket is silently dead
+                if (Date.now()-LastHeartBeat >= 50000) {
+                    await DiscordLogging("Zombie connection detected, shutting down!")
+                    Socket.close()
+                }
+            }, Interval)
+        }
+    } catch(e) {
+        DevMode ? await DiscordLogging(`Error: ${e}`): false
+    }
 }
 
 // When socket receives a message then parse json and handle the opcodes below
@@ -83,7 +139,7 @@ async function OnMessage(Message: string, Payload: Dtypes.DiscordClient, Socket:
         const payload = JSON.parse((Message).toString())
         payload.s != null ? Sequence = payload.s : false
         payload.ClearConsole ? console.clear() : false
-        // DevMode ? await DiscordLogging((Message).toString()) : false
+        
 
         switch(payload.op) {
             case(0):
@@ -112,7 +168,8 @@ async function OnMessage(Message: string, Payload: Dtypes.DiscordClient, Socket:
                 await Hearthbeat(payload["d"]["heartbeat_interval"], Socket)
                 break;
             case(11):
-                DevMode ? await DiscordLogging("HearthBeat has been received") : false
+                DevMode ? await DiscordLogging(`Time since last hearthbeat: ${Date.now()-LastHeartBeat}`) : false
+                LastHeartBeat = Date.now()
                 break;
         }
     }catch(e) {
