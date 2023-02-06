@@ -1,3 +1,5 @@
+import colors from 'colors'
+
 export async function DiscordLogging(Message: string) {
     const Time = new Date()
     const Year = Time.getFullYear()
@@ -7,8 +9,8 @@ export async function DiscordLogging(Message: string) {
     const Min = Time.getMinutes()
     const Sec = Time.getSeconds()
 
-    const YearIntToString = ["January", "February", "March", "April", "May", "June", "Juli", "August", "September", "October", "November", "December"]
-    const DayIntToString = ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    const YearIntToString = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    const DayIntToString = ["", "Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
 
-    console.log(`\n\r[Year: ${Year}][Month: ${YearIntToString[Month]}][Day: ${DayIntToString[Day]}][Time: ${Hour}:${Min}:${Sec}] ---  [ Message ]: ${Message} `)
+    console.log(colors.gray(`\n\r[${Year}.${YearIntToString[Month]}.${DayIntToString[Day]}]-[Time: ${Hour}:${Min}:${Sec}]-[ ${Message} ]`))
 }

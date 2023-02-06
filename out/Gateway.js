@@ -1,6 +1,7 @@
 import { DiscordLogging } from './Mod.js';
 import Websocket from 'ws';
 import events from 'node:events';
+import colors from 'colors';
 // Events of failure from gateway api
 export const OnHello = new events.EventEmitter();
 export const OnResumed = new events.EventEmitter();
@@ -48,7 +49,7 @@ async function WS_Login(Payload) {
         // If connection closes for any weird reasion then clear the interval to make function stop running
         // And reset the heartbeat so that it dosnt stop as soon as the connection is restarted
         Socket.on('close', async (Reasion) => {
-            await DiscordLogging(`Connection to Discord was terminated by ${(Reasion).toString()} reasions | Retrying...`);
+            await DiscordLogging(colors.bgRed(`Connection to Discord was terminated by ${(Reasion).toString()} reasions | Retrying...`));
             LastHeartBeat = Date.now();
             ResumeAttempts < 5 ? Resume = true : Resume = false;
             clearInterval(setIntervalD);
@@ -57,7 +58,7 @@ async function WS_Login(Payload) {
         });
     }
     catch (e) {
-        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false;
+        DevMode ? await DiscordLogging(colors.red(`We received a error: ${e}`)) : false;
     }
 }
 // As soon as we connect and we receive opcode 10 then send identify payload
@@ -78,7 +79,7 @@ async function Identify(Payload, Socket) {
         // Make sure Intents and token is not null or undefined or shoter than expected
         if (Payload.token.length < 40 || Payload.intents == null) {
             Socket.close();
-            throw ("Either token is invalid or you are missing intents payload! Dont do that!");
+            throw (colors.red("Either token is invalid or you are missing intents payload! Dont do that!"));
         }
         // Resume the connection if needed
         if (Resume && ResumeAttempts < 10) {
@@ -91,15 +92,15 @@ async function Identify(Payload, Socket) {
                 }
             };
             ResumeAttempts++;
-            DevMode ? await DiscordLogging("Sending Resume payload") : false;
+            DevMode ? await DiscordLogging(colors.cyan("Sending Resume payload")) : false;
             Socket.send(JSON.stringify(Data));
             return;
         }
         Socket.send(JSON.stringify(Data));
-        DevMode ? await DiscordLogging("Sending Identify payload") : false;
+        DevMode ? await DiscordLogging(colors.cyan("Sending Identify payload")) : false;
     }
     catch (e) {
-        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false;
+        DevMode ? await DiscordLogging(colors.red(`We received a error: ${e}`)) : false;
     }
 }
 // If opcode 10 is received then send opcode 1 and discord will return opcode 11 to verify
@@ -112,17 +113,17 @@ async function Hearthbeat(Interval, Socket) {
         // Send a continues heartbeat every Discord seconds to keep connection alive
         setIntervalD = setInterval(async () => {
             Socket.send(JSON.stringify(Data));
-            DevMode ? await DiscordLogging(`Sending hearthbeat with sequence: ${Sequence}`) : false;
+            DevMode ? await DiscordLogging(`Heartbeat S: ${Sequence}`) : false;
             // Connection needs to close as socket is silently dead
             if (Date.now() - LastHeartBeat >= Interval + 5000) {
-                await DiscordLogging("Zombie connection detected, shutting down!");
+                await DiscordLogging(colors.red("Zombie connection detected, shutting down!"));
                 clearInterval(setIntervalD);
                 Socket.close();
             }
         }, Interval);
     }
     catch (e) {
-        DevMode ? await DiscordLogging(`Error: ${e}`) : false;
+        DevMode ? await DiscordLogging(colors.red(`We received a error: ${e}`)) : false;
     }
 }
 // When socket receives a message then parse json and handle the opcodes below
@@ -164,13 +165,13 @@ async function OnMessage(Message, Payload, Socket) {
                 await Hearthbeat(payload["d"]["heartbeat_interval"], Socket);
                 break;
             case (11):
-                DevMode ? await DiscordLogging(`Heartbeat received: ${Date.now() - LastHeartBeat}`) : false;
+                DevMode ? await DiscordLogging((`Heartbeat received: ${Date.now() - LastHeartBeat}`)) : false;
                 LastHeartBeat = Date.now();
                 break;
         }
     }
     catch (e) {
-        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false;
+        DevMode ? await DiscordLogging(colors.red(`We received a error: ${e}`)) : false;
     }
 }
 // If opcode 0 is received then we recived DATA from the gateway witch we will handle here
@@ -189,6 +190,6 @@ async function DiscordEventReceived(Data) {
         }
     }
     catch (e) {
-        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false;
+        DevMode ? await DiscordLogging(colors.red(`We received a error: ${e}`)) : false;
     }
 }

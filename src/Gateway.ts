@@ -1,6 +1,7 @@
 import {Dtypes, DiscordLogging} from './Mod.js'
 import Websocket from 'ws'
 import events from 'node:events'
+import colors from 'colors'
 
 // Events of failure from gateway api
 export const OnHello = new events.EventEmitter()
@@ -56,7 +57,7 @@ async function WS_Login(Payload: Dtypes.DiscordClient) {
         // If connection closes for any weird reasion then clear the interval to make function stop running
         // And reset the heartbeat so that it dosnt stop as soon as the connection is restarted
         Socket.on('close', async (Reasion: any) => {
-            await DiscordLogging(`Connection to Discord was terminated by ${(Reasion).toString()} reasions | Retrying...`)
+            await DiscordLogging(colors.bgRed(`Connection to Discord was terminated by ${(Reasion).toString()} reasions | Retrying...`))
             LastHeartBeat = Date.now()
             ResumeAttempts < 5 ? Resume = true : Resume = false
             clearInterval(setIntervalD)
@@ -64,7 +65,7 @@ async function WS_Login(Payload: Dtypes.DiscordClient) {
             new Discord(Payload)
         })
     } catch(e) {
-        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false
+        DevMode ? await DiscordLogging(colors.red(`We received a error: ${e}`)) : false
     }
 }
 
@@ -87,7 +88,7 @@ async function Identify(Payload: Dtypes.DiscordClient, Socket: Websocket) {
         // Make sure Intents and token is not null or undefined or shoter than expected
         if(Payload.token.length < 40 || Payload.intents == null) {
             Socket.close()
-            throw("Either token is invalid or you are missing intents payload! Dont do that!")
+            throw(colors.red("Either token is invalid or you are missing intents payload! Dont do that!"))
         }
 
         // Resume the connection if needed
@@ -101,15 +102,15 @@ async function Identify(Payload: Dtypes.DiscordClient, Socket: Websocket) {
                 }
               }
             ResumeAttempts++
-            DevMode ? await DiscordLogging("Sending Resume payload") : false
+            DevMode ? await DiscordLogging(colors.cyan("Sending Resume payload")) : false
             Socket.send(JSON.stringify(Data))
             return
         }
 
         Socket.send(JSON.stringify(Data))
-        DevMode ? await DiscordLogging("Sending Identify payload") : false
+        DevMode ? await DiscordLogging(colors.cyan("Sending Identify payload")) : false
     } catch(e) {
-        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false
+        DevMode ? await DiscordLogging(colors.red(`We received a error: ${e}`)) : false
     }
 }
 
@@ -124,17 +125,17 @@ async function Hearthbeat(Interval: number, Socket: Websocket) {
         // Send a continues heartbeat every Discord seconds to keep connection alive
         setIntervalD = setInterval(async() => {
             Socket.send(JSON.stringify(Data))
-            DevMode ? await DiscordLogging(`Sending hearthbeat with sequence: ${Sequence}`) : false
+            DevMode ? await DiscordLogging(`Heartbeat S: ${Sequence}`) : false
 
             // Connection needs to close as socket is silently dead
             if (Date.now()-LastHeartBeat >= Interval+5000) {
-                await DiscordLogging("Zombie connection detected, shutting down!")
+                await DiscordLogging(colors.red("Zombie connection detected, shutting down!"))
                 clearInterval(setIntervalD)
                 Socket.close()
             }
         }, Interval)
     } catch(e) {
-        DevMode ? await DiscordLogging(`Error: ${e}`): false
+        DevMode ? await DiscordLogging(colors.red(`We received a error: ${e}`)): false
     }
 }
 
@@ -180,12 +181,12 @@ async function OnMessage(Message: string, Payload: Dtypes.DiscordClient, Socket:
                 await Hearthbeat(payload["d"]["heartbeat_interval"], Socket)
                 break;
             case(11):
-                DevMode ? await DiscordLogging(`Heartbeat received: ${Date.now()-LastHeartBeat}`) : false
+                DevMode ? await DiscordLogging((`Heartbeat received: ${Date.now()-LastHeartBeat}`)) : false
                 LastHeartBeat = Date.now()
                 break;
         }
     }catch(e) {
-        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false
+        DevMode ? await DiscordLogging(colors.red(`We received a error: ${e}`)) : false
     }
 }
 
@@ -204,6 +205,6 @@ async function DiscordEventReceived(Data: any) {
                 break;
         }
     }catch(e) {
-        DevMode ? await DiscordLogging(`We received a error: ${e}`) : false
+        DevMode ? await DiscordLogging(colors.red(`We received a error: ${e}`)) : false
     }
 }

@@ -2,9 +2,9 @@
 // First identify payload on first contact with gateway
 export type DiscordClient = {
     token: string,
-    intents?: number,
-    Devmode?: boolean,
-    ClearConsole?: boolean
+    intents?: number | undefined,
+    Devmode?: boolean | undefined,
+    ClearConsole?: boolean | undefined
 }
 
 // When the OnReady event fires this is the payload

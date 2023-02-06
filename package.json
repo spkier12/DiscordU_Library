@@ -3,13 +3,14 @@
   "version": "0.0.1",
   "description": "Discord library minimal made by Ulrik Brun - Ulrikbrun.eu",
   "main": "./out/example.js",
-  "private":"true",
+  "private": "true",
   "scripts": {
     "test": "node ."
   },
   "author": "Ulrik Skilbred Brun",
   "license": "ISC",
   "dependencies": {
+    "colors": "^1.4.0",
     "ws": "^8.12.0"
   },
   "type": "module",

@@ -5,7 +5,7 @@ new Discord({
     token: "OTgzMzYwNjkzOTYzMjE4OTQ1.GY6Aun.xvkt30YTDxueczecwiKzJvmHYmB_GWujMI3Itw",
     intents: 512,
     Devmode: true,
-    ClearConsole: false // When this is true it will clear the console on every payload received to free up screen space
+    ClearConsole: true // When this is true it will clear the console on every payload received to free up screen space
 });
 OnReady.once('OnReady', async (Bot) => {
     console.log(`Discord bot: ${Bot.d.user.username} is now online!`);
