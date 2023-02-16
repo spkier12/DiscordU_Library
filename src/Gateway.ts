@@ -1,4 +1,4 @@
-import {Dtypes, DiscordLogging, ConnectionGatewayError} from './Mod.js'
+import {Dtypes, DiscordLogging, ConnectionGatewayError} from './DiscordU.js'
 import Websocket from 'ws'
 import events from 'node:events'
 import colors from 'colors'
@@ -24,7 +24,7 @@ let DevMode = false
 let Sequence: number = null
 // If the hearthbeat is greater than interval+5000 Miliseconds then terminate connection and resume 
 let LastHeartBeat = Date.now()
-// If resume attempts is greater than 5 then reopen the connection as new
+// If resume attempts is greater than 3 then reopen the connection as new
 let ResumeAttempts = 0
 // If Resume is true then try and re-open connection and receive missed events
 let Resume = false
@@ -36,9 +36,11 @@ const GatewayVersion = 10
 let Connection = `wss://gateway.discord.gg/?v${GatewayVersion}&encoding=json`
 // Clear this variable with clearinterval to prevent hearthbeat function from ever running agen
 let setIntervalD: NodeJS.Timer;
+//Rest Api url
+export const RestApi = `https://discord.com/api/v${GatewayVersion}`
 
 // Get the config and open a connection by calling Websocket server
-export class Discord {
+export class Client {
     client: Dtypes.DiscordClient
 
     constructor(Client: Dtypes.DiscordClient) {
@@ -62,7 +64,7 @@ async function WS_Login(Payload: Dtypes.DiscordClient) {
             ResumeAttempts < 5 ? Resume = true : Resume = false
             clearInterval(setIntervalD)
             Socket.close()
-            new Discord(Payload)
+            new Client(Payload) 
         })
     } catch(e) {
         DevMode ? await DiscordLogging(colors.red(`We received a error: ${e}`)) : false
@@ -92,7 +94,7 @@ async function Identify(Payload: Dtypes.DiscordClient, Socket: Websocket) {
         }
 
         // Resume the connection if needed
-        if (Resume && ResumeAttempts < 10) {
+        if (Resume && ResumeAttempts < 3) {
             const Data = {
                 "op": 6,
                 "d": {
