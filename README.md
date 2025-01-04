@@ -1,3 +1,6 @@
 Jeg prøvde veldig god tå laget et discord bilbotek...
 
 Det gikk nesten...
+
+
+Token some r oppgitt er ikke eksiterende / Non existing discord token
